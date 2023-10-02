@@ -51,9 +51,10 @@ def get_data(year, app_token, max_observations=None):
     # Create a DataFrame using pandas
     df = pd.DataFrame(all_data)
 
-    # Save the DataFrame to a CSV file
+    # Save the DataFrame to a CSV file for easy access
     df.to_csv(csv_filename, index=False)
 
     print(f"Data for {year} retrieved and saved to {csv_filename}.")
 
     return df
+
