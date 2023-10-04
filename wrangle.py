@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 import requests
 
@@ -135,10 +136,54 @@ def single_coll(df):
 #----------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------
 
+def motorist_only(df):
+    # Filter the DataFrame to exclude collisions involving pedestrians or cyclists
+    df = df[(df['number_of_pedestrians_injured'] == 0) & (df['number_of_pedestrians_killed'] == 0) & (df['number_of_cyclist_injured'] == 0) & (df['number_of_cyclist_killed'] == 0)]
+    return df
+
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+
+def second_drop(df):
+    df = df.drop(columns=['cross_street_name', 'off_street_name', 'number_of_pedestrians_injured', 'number_of_pedestrians_killed', 'number_of_cyclist_injured', 'number_of_cyclist_killed'])
+    return df
+
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+
+def null_zero_loc(df):
+    df.loc[df['latitude'] == 0.0, ['latitude', 'longitude', 'location']] = [np.nan, np.nan, np.nan]
+    return df
+
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+
+def fill_geo(df):
+    geo_filled = pd.read_csv('final_geo_filled.csv')
+    
+    # List of unique collision_ids in filled_df
+    collision_ids_to_remove = geo_filled['collision_id'].unique()
+
+    # Remove rows from first_run where collision_id matches any value in collision_ids_to_remove
+    df = df[~df['collision_id'].isin(collision_ids_to_remove)]
+    
+    # Concatenate the two dataframes
+    df = pd.concat([geo_filled, df], ignore_index=True)
+
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+
 def wrangle_coll_stage1(year, app_token, max_observations=None):
     df = get_data(year, app_token, max_observations)
     df = date_time(df)
     df = initial_reorder_cols(df)
     df = drop_3plus(df)
     df = single_coll(df)
+    df = motorist_only(df)
+    df = second_drop(df)
+    df = null_zero_loc(df)
+    df = fill_geo(df)
     return df
+
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
