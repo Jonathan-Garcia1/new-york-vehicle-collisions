@@ -1,5 +1,23 @@
 import pandas as pd
 import numpy as np
+import os
+import requests
+import math
+import env
+import wrangle as w
+import explore as exp
+import datetime
+from scipy.stats import chi2_contingency
+# Importing necessary libraries for data visualization
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from scipy.stats import chi2
+
+
+
+
+
 
 def create_info_dataframe(df):
     # Initialize lists to store information for each column
@@ -40,3 +58,33 @@ def create_info_dataframe(df):
     })
 
     return info_df
+
+
+# Modified function to conduct Chi-Square Test and interpret results
+def chi_square_test(dataframe, target_var, category_var):
+    # Create a contingency table
+    contingency_table = pd.crosstab(dataframe[category_var], dataframe[target_var])
+    
+    # Conduct the Chi-Square Test of Independence
+    chi2_stat, p_value, _, _ = chi2_contingency(contingency_table)
+    
+    # Calculate r value (effect size measure for chi-square, known as Cramér's V)
+    r_value = (chi2_stat / (len(dataframe) * (min(contingency_table.shape) - 1))) ** 0.5
+    
+    # Print p-value and r-value
+    print(f"p-value: {p_value}")
+    print(f"r-value: {r_value:.2f}")
+    
+    # Interpretation of p-value and r-value
+    print("\nInterpretation:")
+    if p_value < 0.05:
+        print("Reject the null hypothesis.")
+    else:
+        print("Fail to reject the null hypothesis.")
+    
+    if r_value < 0.1:
+        print("The r-value suggests a small effect size.")
+    elif 0.1 <= r_value < 0.3:
+        print("The r-value suggests a medium effect size.")
+    else:
+        print("The r-value suggests a large effect size.")
